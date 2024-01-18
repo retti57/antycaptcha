@@ -7,7 +7,7 @@ from time import sleep
 import pyautogui
 import pynput.mouse as mouse
 import keyboard
-from click_copy_display_functions import click_on_position
+from bot_useful_functions import click_on_position
 import httpx
 import re
 

@@ -4,7 +4,7 @@ import time
 import pyautogui
 import keyboard
 from pynput import mouse
-from click_copy_display_functions import click_on_position
+from bot_useful_functions import click_on_position
 
 
 if __name__ == '__main__':
