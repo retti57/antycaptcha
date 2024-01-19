@@ -3,10 +3,12 @@ from time import sleep
 
 from dotenv import load_dotenv
 from selenium import webdriver
+from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+
 
 
 def load_path():
@@ -37,15 +39,19 @@ class Search:
         filters = self._find_filters_section()
         first_filter_div = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_make']")
         first_filter_div.click()
-        li_tags = first_filter_div.find_elements(By.TAG_NAME, 'li')
-        for element in li_tags:
-            label = element.find_element(By.TAG_NAME, 'label')
-            label_make = label.find_element(By.XPATH, f'//p[contains(text(),{make_of_car}')
-            print(label_make)
-            input_box = label.find_element(By.TAG_NAME, 'input')
-            input_box.click()
-            # self.webdriver.send_key('ENTER')
-        return make_of_car
+        checkbox_wrappers = filters.find_elements(By.XPATH, "//div[@data-testid='checkbox-wrapper']")
+
+        for element in checkbox_wrappers:
+            if make_of_car in element.text:
+                element.click()
+                """ Klika już dobrze """
+                sleep(2)
+            # label_make = label.find_element(By.XPATH, f'//p[contains(text(),{make_of_car}')
+        #     print(label_make)
+        #     input_box = label.find_element(By.TAG_NAME, 'input')
+        #     input_box.click()
+        #     # self.webdriver.send_key('ENTER')
+        # return make_of_car
 
     def car_model(self, model_of_car):
 
