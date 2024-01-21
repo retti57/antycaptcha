@@ -3,12 +3,12 @@ from time import sleep
 
 from dotenv import load_dotenv
 from selenium import webdriver
-from selenium.webdriver import ActionChains
+
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
-
 
 
 def load_path():
@@ -21,32 +21,39 @@ class Search:
         self.url = url
         self.webdriver = driver
 
-    def open_url(self):
+    def open_url_and_maximize_window(self):
         self.webdriver.get(self.url)
+        self.webdriver.maximize_window()
 
     def click_advanced_search(self) -> bool:
         advanced_search = self.webdriver.find_element(By.XPATH, "//span[contains(text(), 'Wyszukiwanie zaawansowane')]")
         advanced_search.click()
         return advanced_search.text
 
-    def _find_filters_section(self):
-        filters = self.webdriver.find_element(By.TAG_NAME, "section")
-
+    def _find_filter_sections(self):
+        """Finds <div> tag containing filters"""
+        xpath_query = "//div[@data-testid='filters']"
+        filters = self.webdriver.find_element(By.XPATH, xpath_query)
+        """ DZIAŁA """
         return filters
 
     def car_make(self, make_of_car):
-
-        filters = self._find_filters_section()
+        """ Selects given make of car """
+        filters = self._find_filter_sections()
         first_filter_div = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_make']")
         first_filter_div.click()
-        checkbox_wrappers = filters.find_elements(By.XPATH, "//div[@data-testid='checkbox-wrapper']")
+        input_tag = first_filter_div.find_element(By.XPATH, "//input[@type='text']")
+        input_tag.click()
+        input_tag.send_keys(make_of_car.title())
+        input_tag.send_keys(Keys.ENTER)
+        car = first_filter_div.find_element(By.XPATH, f'//li//p[contains(text(),{make_of_car.title()})]')
+        car.click()
+    """ działa """
 
-        for element in checkbox_wrappers:
-            if make_of_car in element.text:
-                element.click()
-                """ Klika już dobrze """
-                sleep(2)
-            # label_make = label.find_element(By.XPATH, f'//p[contains(text(),{make_of_car}')
+        # arrow = first_filter_div.find_element(By.XPATH, '//button[@data-testid="arrow"]')
+        # arrow.click()
+
+        # label_make = label.find_element(By.XPATH, f'//p[contains(text(),{make_of_car}')
         #     print(label_make)
         #     input_box = label.find_element(By.TAG_NAME, 'input')
         #     input_box.click()
@@ -55,7 +62,7 @@ class Search:
 
     def car_model(self, model_of_car):
 
-        filters = self._find_filters_section()
+        filters = self._find_filter_sections()
         models = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_model']")
         models.click()
 
@@ -67,7 +74,7 @@ class Search:
 
     def car_body_type(self, body_type):
 
-        filters = self._find_filters_section()
+        filters = self._find_filter_sections()
         body_type = filters.find_element(By.XPATH, "//div[@data-testid='filter_body_type']")
         body_type.click()
 
@@ -79,7 +86,7 @@ class Search:
 
     def car_price(self, price_lowest=0.0, price_highest=200000.0):
 
-        filters = self._find_filters_section()
+        filters = self._find_filter_sections()
         price = filters.find_element(By.XPATH, "//div[@data-testid='filter_float_price']")
         price.click()
         price_low = filters.find_element(By.XPATH, "//div[@data-testid='range-from']").find_element(By.TAG_NAME,
@@ -92,7 +99,7 @@ class Search:
 
     def car_year(self, lowest=1980, highest=2024):
 
-        filters = self._find_filters_section()
+        filters = self._find_filter_sections()
         year = filters.find_element(By.XPATH, "//div[@data-testid='filter_float_year']")
         year.click()
         year_low = filters.find_element(By.XPATH, "//div[@data-testid='range-from']").find_element(By.TAG_NAME, 'input')
@@ -109,7 +116,7 @@ load_path()
 with webdriver.Chrome(service=Service(executable_path=load_path())) as chrome_driver:
     URL = 'https://www.otomoto.pl/'
     search = Search(url=URL, driver=chrome_driver)
-    search.open_url()
+    search.open_url_and_maximize_window()
 
     # /html/body/div[6]/form/div/div/div[2]/div/div/ul/li[118]/  div/label/p
 
@@ -120,8 +127,10 @@ with webdriver.Chrome(service=Service(executable_path=load_path())) as chrome_dr
         expected_conditions.presence_of_element_located((By.TAG_NAME, "span"))
     )
     search.click_advanced_search()
-    # print(search.click_advanced_search())
     sleep(3)
+
+    print(search._find_filter_sections())
+    sleep(5)
 
     search.car_make('Audi')
     sleep(3)
