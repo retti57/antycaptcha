@@ -41,8 +41,7 @@ class Search:
 
     def car_make(self, make_of_car):
         """ Selects given make of car """
-        filters = self._find_filter_sections()
-        make = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_make']")
+        make = self.webdriver.find_element(By.XPATH, "//div[@data-testid='filter_enum_make']")
         make.click()
 
         input_tag = make.find_element(By.XPATH, "//input[@type='text'][@aria-label='Marka pojazdu']")
@@ -54,7 +53,7 @@ class Search:
         car = make.find_element(By.XPATH, f'//li//p[contains(text(),{make_of_car.title()})]')
         car_checkbox = car.find_element(By.XPATH, '//li//input[@type="checkbox"]')
 
-        WebDriverWait(chrome_driver, 5).until(
+        WebDriverWait(chrome_driver, 10).until(
             expected_conditions.presence_of_element_located(
                 (By.XPATH, "//form[@role='search']//label[@data-testid='label']")
             )
@@ -63,76 +62,119 @@ class Search:
 
         # find and click arrow Up
         if car_checkbox.is_selected():
-            print('checkbox selected')
-            WebDriverWait(chrome_driver, 5).until(
+            print('checkbox make selected')
+            WebDriverWait(chrome_driver, 10).until(
                 expected_conditions.presence_of_element_located(
-                    (By.XPATH, "//form[@role='search']//span")
+                    (By.XPATH, "//form[@role='search']//div[@data-testid='filter_enum_make']//span")
                 )
             )
 
             arrow_button = self.webdriver.find_element(
                 By.XPATH,
-                "//form//span//button[@data-testid='arrow']"
+                "//form//div[@data-testid='filter_enum_make']//span//button[@data-testid='arrow']"
             )
 
             if arrow_button.is_displayed():
-                print("see arrow up")
+                print("see arrow up make")
                 arrow_button.click()
+                # sleep(1)
     """ działa """
 
     def car_model(self, model_of_car):
         """ Selects given model of car """
-        filters = self._find_filter_sections()
-        model = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_model']")
+        model = self.webdriver.find_element(By.XPATH, "//div[@data-testid='filter_enum_model']")
         model.click()
 
         input_tag_model = model.find_element(By.XPATH, "//input[@type='text'][@aria-label='Model pojazdu']")
         input_tag_model.click()
 
         input_tag_model.send_keys(model_of_car.title())
-
         # find and click checkbox
         car = model.find_element(By.XPATH, f'//li//p[contains(text(),{model_of_car.title()})]')
-        car_checkbox = car.find_element(By.XPATH, '//input[@type="checkbox"]')
+        car_checkbox = car.find_element(By.XPATH, '//li//input[@type="checkbox"]')
 
-        WebDriverWait(chrome_driver, 5).until(
+        WebDriverWait(chrome_driver, 10).until(
             expected_conditions.presence_of_element_located(
                 (By.XPATH, "//form[@role='search']//label[@data-testid='label']")
             )
         )
-
         car_checkbox.click()
 
+
+
         # find and click arrow Up
-        if car_checkbox.is_selected():
-            print('checkbox selected')
-            WebDriverWait(chrome_driver, 5).until(
+        if car.is_selected():
+            print('checkbox model selected')
+            WebDriverWait(chrome_driver, 10).until(
                 expected_conditions.presence_of_element_located(
-                    (By.XPATH, "//form[@role='search']//span")
+                    (By.XPATH, "//form[@role='search']//div[@data-testid='filter_enum_model']//span")
                 )
             )
 
             arrow_button = self.webdriver.find_element(
                 By.XPATH,
-                "//form//span//button[@data-testid='arrow']"
+                "//form//div[@data-testid='filter_enum_model']//span//button[@data-testid='arrow']"
             )
 
             if arrow_button.is_displayed():
-                print("see arrow up")
+                print("see arrow up model")
                 arrow_button.click()
+                # sleep(1)
     """ działa """
 
     def car_body_type(self, body_type):
 
-        filters = self._find_filter_sections()
-        body_type = filters.find_element(By.XPATH, "//div[@data-testid='filter_body_type']")
-        body_type.click()
+        div_body_type = self.webdriver.find_element(By.XPATH, "//div[@data-testid='filter_enum_body_type']")
+        div_body_type.click()
 
-        for element in body_type.find_elements(By.TAG_NAME, 'li'):
+        fieldset_tag = div_body_type.find_element(By.XPATH, "//fieldset[@aria-label='Typ nadwozia']")
+        fieldset_tag.click()
+
+        ul_tag = WebDriverWait(chrome_driver, 10).until(
+            expected_conditions.presence_of_element_located(
+                (By.XPATH, "//form[@role=\'search\']//div[@data-testid=\'filter_enum_body_type\']")
+            )
+        )
+        ul_tag.click()
+        # ul_tag = div_body_type.find_element(By.XPATH, '//ul[@class="ooa-dljx5f"]')
+
+        for element in ul_tag:
             label = element.find_element(By.TAG_NAME, 'label')
-            if label.find_element(By.TAG_NAME, 'p').text == body_type:
-                label.click()
-                return body_type
+            print(label)
+            p_in_label = label.find_element(By.TAG_NAME, "p")
+            print(p_in_label)
+            if p_in_label.text in body_type:
+                label_type_checkbox = label.find_element(By.XPATH, '//input[@type="checkbox"]')
+                label_type_checkbox.click()
+        # find and click checkbox
+        WebDriverWait(chrome_driver, 10).until(
+            expected_conditions.text_to_be_present_in_element_attribute(
+                (By.XPATH,
+                 "//form[@role='search']//div[@data-testid='filter_enum_body_type']//fieldset/input[@value]",
+                 p_in_label.text)
+            )
+        )
+
+        # find and click arrow Up
+        if label_type_checkbox.is_selected():
+            print('checkbox selected type')
+            WebDriverWait(chrome_driver, 10).until(
+                expected_conditions.presence_of_element_located(
+                    (By.XPATH, "//form[@role='search']//div[@data-testid='filter_enum_body_type']//span")
+                )
+            )
+
+            arrow_button = self.webdriver.find_element(
+                By.XPATH,
+                "//form//div[@data-testid='filter_enum_body_type']//span//button[@data-testid='arrow']"
+            )
+
+            if arrow_button.is_displayed():
+                print("see arrow up type")
+                arrow_button.click()
+                sleep(1)
+
+
 
     def car_price(self, price_lowest=0.0, price_highest=200000.0):
 
@@ -168,12 +210,12 @@ with webdriver.Chrome(service=Service(executable_path=load_path())) as chrome_dr
     search = Search(url=URL, driver=chrome_driver)
     search.open_url_and_maximize_window()
 
-    WebDriverWait(chrome_driver, 5).until(
+    WebDriverWait(chrome_driver, 15).until(
         expected_conditions.presence_of_element_located((By.TAG_NAME, "span"))
     )
     search.click_advanced_search()
 
-    WebDriverWait(chrome_driver, 5).until(
+    WebDriverWait(chrome_driver, 15).until(
         expected_conditions.presence_of_element_located(
             (By.XPATH, "//form[@role='search']")
         )
@@ -182,15 +224,15 @@ with webdriver.Chrome(service=Service(executable_path=load_path())) as chrome_dr
 
     search.car_make('Ford')
 
-    WebDriverWait(chrome_driver, 5).until(
-        expected_conditions.presence_of_element_located(
-            (By.XPATH, "//div[@data-testid='filter_enum_model']"))
-    )
-    # sleep(4)
+    # WebDriverWait(chrome_driver, 15).until(
+    #     expected_conditions.presence_of_element_located(
+    #         (By.XPATH, "//div[@data-testid='filter_enum_model']"))
+    # )
+    sleep(1)
     search.car_model('Mondeo')
     print('delay 2 for terminating')
     sleep(2)
-
+    search.car_body_type('sedan')
 #     search.car_price(20000,25000)
 #     sleep(3)
 #     search.car_year(2015, 2016)
