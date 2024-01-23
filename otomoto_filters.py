@@ -4,9 +4,10 @@ from time import sleep
 from dotenv import load_dotenv
 from selenium import webdriver
 
-from selenium.webdriver.common.keys import Keys
+# from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+# from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -32,7 +33,8 @@ class Search:
 
     def _find_filter_sections(self):
         """Finds <div> tag containing filters"""
-        xpath_query = "//div[@data-testid='filters']"
+        xpath_query = "//form[@role='search']"
+
         filters = self.webdriver.find_element(By.XPATH, xpath_query)
         """ DZIAŁA """
         return filters
@@ -40,37 +42,85 @@ class Search:
     def car_make(self, make_of_car):
         """ Selects given make of car """
         filters = self._find_filter_sections()
-        first_filter_div = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_make']")
-        first_filter_div.click()
-        input_tag = first_filter_div.find_element(By.XPATH, "//input[@type='text']")
+        make = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_make']")
+        make.click()
+
+        input_tag = make.find_element(By.XPATH, "//input[@type='text'][@aria-label='Marka pojazdu']")
         input_tag.click()
+
         input_tag.send_keys(make_of_car.title())
-        input_tag.send_keys(Keys.ENTER)
-        car = first_filter_div.find_element(By.XPATH, f'//li//p[contains(text(),{make_of_car.title()})]')
-        car.click()
+
+        # find and click checkbox
+        car = make.find_element(By.XPATH, f'//li//p[contains(text(),{make_of_car.title()})]')
+        car_checkbox = car.find_element(By.XPATH, '//li//input[@type="checkbox"]')
+
+        WebDriverWait(chrome_driver, 5).until(
+            expected_conditions.presence_of_element_located(
+                (By.XPATH, "//form[@role='search']//label[@data-testid='label']")
+            )
+        )
+        car_checkbox.click()
+
+        # find and click arrow Up
+        if car_checkbox.is_selected():
+            print('checkbox selected')
+            WebDriverWait(chrome_driver, 5).until(
+                expected_conditions.presence_of_element_located(
+                    (By.XPATH, "//form[@role='search']//span")
+                )
+            )
+
+            arrow_button = self.webdriver.find_element(
+                By.XPATH,
+                "//form//span//button[@data-testid='arrow']"
+            )
+
+            if arrow_button.is_displayed():
+                print("see arrow up")
+                arrow_button.click()
     """ działa """
 
-        # arrow = first_filter_div.find_element(By.XPATH, '//button[@data-testid="arrow"]')
-        # arrow.click()
-
-        # label_make = label.find_element(By.XPATH, f'//p[contains(text(),{make_of_car}')
-        #     print(label_make)
-        #     input_box = label.find_element(By.TAG_NAME, 'input')
-        #     input_box.click()
-        #     # self.webdriver.send_key('ENTER')
-        # return make_of_car
-
     def car_model(self, model_of_car):
-
+        """ Selects given model of car """
         filters = self._find_filter_sections()
-        models = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_model']")
-        models.click()
+        model = filters.find_element(By.XPATH, "//div[@data-testid='filter_enum_model']")
+        model.click()
 
-        for element in models.find_elements(By.TAG_NAME, 'li'):
-            label = element.find_element(By.TAG_NAME, 'label')
-            if label.find_element(By.TAG_NAME, 'p').text == model_of_car:
-                label.click()
-                return model_of_car
+        input_tag_model = model.find_element(By.XPATH, "//input[@type='text'][@aria-label='Model pojazdu']")
+        input_tag_model.click()
+
+        input_tag_model.send_keys(model_of_car.title())
+
+        # find and click checkbox
+        car = model.find_element(By.XPATH, f'//li//p[contains(text(),{model_of_car.title()})]')
+        car_checkbox = car.find_element(By.XPATH, '//input[@type="checkbox"]')
+
+        WebDriverWait(chrome_driver, 5).until(
+            expected_conditions.presence_of_element_located(
+                (By.XPATH, "//form[@role='search']//label[@data-testid='label']")
+            )
+        )
+
+        car_checkbox.click()
+
+        # find and click arrow Up
+        if car_checkbox.is_selected():
+            print('checkbox selected')
+            WebDriverWait(chrome_driver, 5).until(
+                expected_conditions.presence_of_element_located(
+                    (By.XPATH, "//form[@role='search']//span")
+                )
+            )
+
+            arrow_button = self.webdriver.find_element(
+                By.XPATH,
+                "//form//span//button[@data-testid='arrow']"
+            )
+
+            if arrow_button.is_displayed():
+                print("see arrow up")
+                arrow_button.click()
+    """ działa """
 
     def car_body_type(self, body_type):
 
@@ -118,24 +168,29 @@ with webdriver.Chrome(service=Service(executable_path=load_path())) as chrome_dr
     search = Search(url=URL, driver=chrome_driver)
     search.open_url_and_maximize_window()
 
-    # /html/body/div[6]/form/div/div/div[2]/div/div/ul/li[118]/  div/label/p
-
-    # div/label/p == marka auta
-
-    # //*[@id="__next"]/div/div/div/main/div[2]/article/article/fieldset/form/section[2]/button[2]
     WebDriverWait(chrome_driver, 5).until(
         expected_conditions.presence_of_element_located((By.TAG_NAME, "span"))
     )
     search.click_advanced_search()
-    sleep(3)
 
-    print(search._find_filter_sections())
-    sleep(5)
+    WebDriverWait(chrome_driver, 5).until(
+        expected_conditions.presence_of_element_located(
+            (By.XPATH, "//form[@role='search']")
+        )
+    )
 
-    search.car_make('Audi')
-    sleep(3)
-    # search.car_model('A6')
-    # sleep(3)
+
+    search.car_make('Ford')
+
+    WebDriverWait(chrome_driver, 5).until(
+        expected_conditions.presence_of_element_located(
+            (By.XPATH, "//div[@data-testid='filter_enum_model']"))
+    )
+    # sleep(4)
+    search.car_model('Mondeo')
+    print('delay 2 for terminating')
+    sleep(2)
+
 #     search.car_price(20000,25000)
 #     sleep(3)
 #     search.car_year(2015, 2016)
